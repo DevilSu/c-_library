@@ -1,8 +1,7 @@
 # Functions in unistd.h
 
-[TOC]
 
-##sleep
+[sleep](https://github.com/upstage/ "Visit Upstage!")
 
 
 <meta http-equiv="refresh" content="1">
