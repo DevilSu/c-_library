@@ -61,9 +61,6 @@ int main()
 		*/
 		alarm(1);
 	}
-
-	
-
 	
 	return 0;
 }
