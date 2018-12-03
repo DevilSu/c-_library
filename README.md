@@ -1,1 +1,1 @@
-# c-_library
+# c/c++ library dictionary
