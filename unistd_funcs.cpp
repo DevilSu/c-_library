@@ -11,18 +11,25 @@
 #include <errno.h>	// get the error message while function fails -> errno
 #include <string.h>	// convert errno to string -> strerror
 #include <limits.h> // useage of PATH_MAX
+#include <fcntl.h>	// open() is declared here
 
 int main()
 {
-	int tmp;
-
 	bool f_sleep		=0;	
 	bool f_alarm		=0;
 	bool f_brk			=0;
 	bool f_access		=0;
-	bool f_chdir_getcwd	=1;
+	bool f_chdir_getcwd	=0;
+	bool f_chroot		=0;
+	bool f_chown		=0;
+	bool f_close_read	=1;
+
+	int tmp, tmp1;
+	int fd; 			// file descriptor
+	char buf[255];		// for read file text
+	char cwd[PATH_MAX];	// for getcwd 
 	
-	//sleep
+	// sleep
 	if(f_sleep)
 	{
 		/*
@@ -34,8 +41,8 @@ int main()
 		sleep(2);
 	}
 
-	//alarm
-	//NEED REVISIT
+	// alarm
+	// NEED REVISIT
 	if(f_alarm)
 	{
 		/*
@@ -44,14 +51,14 @@ int main()
 		alarm(1);
 	}
 
-	//brk
-	//NEED REVISIT
+	// brk
+	// NEED REVISIT
 	if(f_brk)
 	{
 
 	}
 
-	//access
+	// access
 	if(f_access)
 	{
 		/*
@@ -75,7 +82,7 @@ int main()
 		printf("tmp=%d, lkjasldj.c: %s\n", tmp, strerror(errno));
 	}
 
-	//chdir, getcwd
+	// chdir, getcwd
 	if(f_chdir_getcwd)
 	{
 		/*
@@ -96,12 +103,88 @@ int main()
 			Out: the origin string
 			Err: if false, will return null pointer, check errno for detail
 		 */
-		char cwd[PATH_MAX];
 		getcwd(cwd, sizeof(cwd));
 		printf("current working directory: %s\n", cwd);
-
 	}
 	
+	// chroot
+	if(f_chroot)
+	{
+		/*
+			int chroot(const char *path);
+			!!! NEED ROOT PERMISSION !!!
+			Def: change root directory to the string (will search pathname begin with the string)
+			In : a string
+			Out: 0 if True, -1 of False
+			Err: if false, will return -1, check errno for detail
+		 */
+		// get current working directory
+		getcwd(cwd, sizeof(cwd));
+		printf("current working directory: %s\n", cwd);
+		// change root pathname to current working directory
+		tmp=chroot(cwd);
+		printf("tmp=%d, chroot: %s\n", tmp, strerror(errno));
+		// goto "test" folder
+		tmp=chdir("/test");
+		printf("tmp=%d, chdir: %s\n", tmp, strerror(errno));
+		// print current working directory 
+		getcwd(cwd, sizeof(cwd));
+		printf("current working directory: %s\n", cwd);
+	}
 
+	// chown
+	// NEED REVISIT
+	if(f_chroot)
+	{
+		/*
+			int chown(const char *path, uid_t owner, gid_t group);
+			!!! NEED ROOT PERMISSION !!!
+			Def: change owner or group of a file (folder?)
+			In1: a string
+			In2: 
+			In3: 
+			Out: 0 if True, -1 of False
+			Err: if false, will return -1, check errno for detail
+		 */
+	}
+
+	// close, read
+	if (f_close_read)
+	{
+		/*
+			int close(int fildes);
+			Def: close a file descriptor
+			In : file descriptor
+			Out: 0 if True, -1 of False
+			Err: if false, will return -1, check errno for detail
+		 */
+		
+		/*
+			open() and close() are not in the same library!!!
+			open  -> fcntl.h
+			close -> unistd.h
+			info of open(): http://pubs.opengroup.org/onlinepubs/7908799/xsh/open.html
+		 */
+		fd=open("README.md", O_RDONLY);
+		printf("tmp=%d, open: %s\n", tmp, strerror(errno));
+
+		/*
+			ssize_t read(int fildes, void *buf, size_t nbyte);
+			Def: read form file
+			In1: file descriptor
+			In2: pointer to the string buffer
+			In3: the char length you want to read
+			Out: actual char length being read, -1 if fail
+			Err: if false, will return -1, check errno for detail
+		 */
+		tmp1=read(fd, buf, 100);	// read 100 char
+		buf[tmp1]='\0';
+    	printf("First 100 char in \"README.md\" is:\n");
+    	printf("%s\n", buf);
+
+    	// close function
+		tmp=close(fd);
+		printf("tmp=%d, close: %s\n", tmp, strerror(errno));
+	}
 	return 0;
 }
