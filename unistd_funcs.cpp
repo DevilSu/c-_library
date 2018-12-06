@@ -27,7 +27,9 @@ int main()
     bool f_crypt        =0;
     bool f_ctermid      =0;
     bool f_cuserid      =0;
-    bool f_dup_dup2     =1;
+    bool f_dup_dup2     =0;
+    bool f_exe          =0;
+    bool f_exit         =1;
 
     int tmp, tmp1;
     int fd, fd2;        // file descriptor
@@ -326,7 +328,36 @@ int main()
         close(fd);
     }
 
+    if(f_exe)
+    {
+        /*
+            execvp
+         */
+        char *args[]={"./unistd_funcs", NULL};
+        printf("before exec\n");
 
+        // execvp(args[0], args);
+        //execv(args[0],args); 
+        execlp(args[0],args[1]);
+        //int execl(args[0],args);
+        
+        // can specify enviroment of the process!
+        // execvpe()
+        // execle()
+
+        // will not do anything after exec
+        printf("after execvp\n");
+    }
+
+    // _exit
+    if(f_exit)
+    {
+        // just exit the program
+        printf("before _exit\n");
+        _exit(0);
+    }
+
+    
 
     return 0;
 }
