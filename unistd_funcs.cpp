@@ -22,12 +22,20 @@ int main()
     bool f_chdir_getcwd =0;
     bool f_chroot       =0;
     bool f_chown        =0;
-    bool f_close_read   =1;
+    bool f_close_read   =0;
+    bool f_confstr      =0;
+    bool f_crypt        =0;
+    bool f_ctermid      =0;
+    bool f_cuserid      =0;
+    bool f_dup_dup2     =1;
 
     int tmp, tmp1;
-    int fd;             // file descriptor
+    int fd, fd2;        // file descriptor
     char buf[255];      // for read file text
-    char cwd[PATH_MAX]; // for getcwd 
+    char cwd[PATH_MAX]; // for getcwd
+    char term[L_ctermid];   // for ctermid
+    char *ptr;              // for ctermid
+    char username[L_cuserid];   // for cuserid 
     
     // sleep
     if(f_sleep)
@@ -186,5 +194,136 @@ int main()
         tmp=close(fd);
         printf("tmp=%d, close: %s\n", tmp, strerror(errno));
     }
+
+    // confstr
+    // NEED REVISIT
+    if(f_confstr)
+    {
+        /*
+            size_t confstr(int name, char *buf, size_t len);
+            Def: gets the value of configuration-dependent string variables
+            In1: configuration name (table lookup)
+            In2: string buffer
+            In3: size of buffer
+            Out: 1. size of the string, may be larger than buf
+                 2. 0 if name is wrong, or name is valid but string is empty
+            Err: when return 0, check errno for detail
+         */
+        tmp=confstr(_CS_PATH, buf, sizeof(buf));
+        printf("confstr str: %s\n", buf);
+        printf("tmp=%d, confstr: %s\n", tmp, strerror(errno));
+    }
+
+    // crypt
+    // NEED REVISIT
+    if(f_crypt)
+    {
+        // char *crypt (const char *key, const char *salt);
+    }
+
+    //ctermid
+    //NEED REVISIT - where to use?
+    if(f_ctermid)
+    {
+        /*
+            char *ctermid(char *s);
+            Def: get pathname of current controlling terminal for the current process
+            In : string buffer
+            Out: pointer to the string, fail will return NULL
+         */
+        ptr=ctermid(term);
+        printf("ptr =%s, addr=%p\n", ptr, ptr);
+        printf("term=%s, addr=%p\n", term, term);
+    }
+
+    // cuserid
+    if(f_cuserid)
+    {
+        /*
+            char *cuserid(char *s);
+            Def: get login name of user
+            In : string buffer
+            Out: pointer to string, NULL if can not found username
+         */
+        if(cuserid(username)==NULL)
+        {
+            fprintf( stderr, "cannot find login name\n" );
+        }
+        printf( "%s\n", username );
+    }
+
+    // dup, dup2
+    if(f_dup_dup2)
+    {
+        /*
+            fcrtl() can do all these stuffs. Don't use these.
+            
+            int dup(int fildes);
+            Def: duplicate an open file descriptor
+            In : a file descriptor
+            Out: another file descrpitor (different from In)
+            - Close one of the two will not close the other
+            - Will read from the end of last read of both fds
+                -> read will conut as both!!
+
+            int dup2(int fildes, int fildes2);
+            Def: duplicate an open file descriptor
+            In : a file descriptor
+            Out: 
+         */
+        fd =open("README.md", O_RDONLY);
+        printf("open as read : %s\n", strerror(errno));
+        // duplicate from start still will read after the read of origin fd
+        // tmp=dup(fd);  
+
+        tmp1=read(fd, buf, 10);    // read 10 char
+        buf[tmp1]='\0';
+        printf("First 10 char in \"README.md\" is:\n");
+        printf("%s\n", buf);
+        printf("-----\n");
+
+        // after duplicate, will read from the end of last read
+        // not from the begining of the file
+        tmp=dup(fd);
+        printf("tmp=%d, fd=%d, dup: %s\n", tmp, fd, strerror(errno));
+        tmp1=read(tmp, buf, 10);    // read 10 char
+        buf[tmp1]='\0';
+        printf("another 10 char in \"README.md\" is:\n");
+        printf("%s\n", buf);
+        printf("-----\n");
+
+        // close function
+        tmp1=close(fd);
+        printf("tmp=%d, close: %s\n", tmp1, strerror(errno));
+        // close one will not close another
+        tmp1=close(tmp);
+        printf("tmp=%d, close: %s\n", tmp1, strerror(errno));
+
+
+        // dup and write, write to same file
+        fd=open("out.txt", O_WRONLY | O_CREAT);
+        printf("open as write: %s\n", strerror(errno));
+
+        tmp1=dup(fd);
+        write(fd, "fd\n", 3);
+        write(tmp1, "tmp1\n", 5);
+
+        // close one, another still can use
+        close(fd);
+        write(tmp1, "tmp1-2\n", 7);
+        close(tmp1);
+
+        // dup2
+        fd=open("out.txt", O_WRONLY | O_CREAT | O_APPEND);
+        tmp=dup2(fd, 1);    // bind 1(std_out) with output file
+        printf("111 tmp=%d, fd=%d\n", tmp, fd); // printf will print to file, terminal show nothing
+        write(fd, "lol\n", 4); // can still write ro fd
+
+
+
+    }
+
+
+
     return 0;
 }

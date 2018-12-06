@@ -1,0 +1,5 @@
+fd
+tmp1
+tmp1-2
+111 tmp=1, fd=3, fd2=0
+lol
