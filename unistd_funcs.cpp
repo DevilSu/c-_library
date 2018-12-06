@@ -261,15 +261,20 @@ int main()
             int dup(int fildes);
             Def: duplicate an open file descriptor
             In : a file descriptor
-            Out: another file descrpitor (different from In)
+            Out: another file descrpitor (different from In), fail will return -1
             - Close one of the two will not close the other
             - Will read from the end of last read of both fds
                 -> read will conut as both!!
+            Err: if false, will return -1, check errno for detail
 
             int dup2(int fildes, int fildes2);
-            Def: duplicate an open file descriptor
-            In : a file descriptor
-            Out: 
+            Def: redirect an open file descriptor
+            In1: a file descriptor
+            In2: a file descriptor
+            Out: In2 if success, fail will return -1
+            - will overwrite fildes2 as fildes -> action to 2 will redirect to 1
+            Err: if false, will return -1, check errno for detail
+
          */
         fd =open("README.md", O_RDONLY);
         printf("open as read : %s\n", strerror(errno));
@@ -317,10 +322,8 @@ int main()
         fd=open("out.txt", O_WRONLY | O_CREAT | O_APPEND);
         tmp=dup2(fd, 1);    // bind 1(std_out) with output file
         printf("111 tmp=%d, fd=%d\n", tmp, fd); // printf will print to file, terminal show nothing
-        write(fd, "lol\n", 4); // can still write ro fd
-
-
-
+        write(fd, "lol\n", 4); // can still write to fd
+        close(fd);
     }
 
 
